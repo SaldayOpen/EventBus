@@ -9,19 +9,19 @@ namespace Salday.EventBus
 
     public class EventBus : IEventBus
     {
-        bool throwIfNotRegistered = false;
+        private readonly bool _throwIfNotRegistered;
 
-        protected IDictionary<Type, IHandlerCollection> typeToHandler = new Dictionary<Type, IHandlerCollection>();
+        protected IDictionary<Type, IHandlerCollection> TypeToHandler = new Dictionary<Type, IHandlerCollection>();
 
-        protected IDictionary<object, ISubscription> subscriptions = new Dictionary<object, ISubscription>();
+        protected IDictionary<object, ISubscription> Subscriptions = new Dictionary<object, ISubscription>();
 
-        HandlerFinder handlerInfoFinder = new HandlerFinder();
+        private readonly HandlerFinder _handlerInfoFinder = new HandlerFinder();
 
-        HandlerFactory handlerFactory = new HandlerFactory();
+        private readonly HandlerFactory _handlerFactory = new HandlerFactory();
 
         public EventBus(bool throwIfNotRegistered = false)
         {
-            this.throwIfNotRegistered = throwIfNotRegistered;
+            this._throwIfNotRegistered = throwIfNotRegistered;
         }
 
         public void Publish<TEvent>(TEvent eventObject) where TEvent : EventBase
@@ -34,11 +34,11 @@ namespace Salday.EventBus
                 return;
             }
 
-            if (throwIfNotRegistered)
+            if (_throwIfNotRegistered)
             {
                 var type = typeof(TEvent);
 
-                var errorMessage = string.Format("No handler found for published type <{0}>", type);
+                var errorMessage = $"No handler found for published type <{type}>";
 
                 throw new TypeNotRegisteredException(type, errorMessage);
             }
@@ -46,28 +46,26 @@ namespace Salday.EventBus
 
         internal IHandlerCollection<TEvent> GetTypedHandlerCollection<TEvent>() where TEvent : EventBase
         {
-            IHandlerCollection coll;
-
-            if (typeToHandler.TryGetValue(typeof(TEvent), out coll))
+            if (TypeToHandler.TryGetValue(typeof(TEvent), out IHandlerCollection coll))
             {
                 return coll as IHandlerCollection<TEvent>;
             }
 
-            else return null;
+            return null;
         }
 
         public ISubscription RegisterSubscription(object eventProxy)
         {
-            if (subscriptions.ContainsKey(eventProxy))
+            if (Subscriptions.ContainsKey(eventProxy))
             {
                 throw new AlreadyRegisteredException(eventProxy, this);
             }
 
-            var methods = handlerInfoFinder.GetPublicInstanceMethods(eventProxy);
+            var methods = _handlerInfoFinder.GetPublicInstanceMethods(eventProxy);
 
-            var handlersMethodData = handlerInfoFinder.GetHandlersData(methods);
+            var handlersMethodData = _handlerInfoFinder.GetHandlersData(methods);
 
-            var handlers = handlerFactory.CreateHandlers(handlersMethodData, eventProxy);
+            var handlers = _handlerFactory.CreateHandlers(handlersMethodData, eventProxy);
 
             var typeAndHandler = new Dictionary<Type, List<IHandler>>();
 
@@ -85,8 +83,7 @@ namespace Salday.EventBus
             foreach (var keyValuePair in typeAndHandler)
             {
                 dict.Add(keyValuePair.Key, keyValuePair.Value);
-                IHandlerCollection handlerCollect;
-                if (typeToHandler.TryGetValue(keyValuePair.Key, out handlerCollect))
+                if (TypeToHandler.TryGetValue(keyValuePair.Key, out IHandlerCollection handlerCollect))
                 {
                     handlerCollect.AddHandlers(keyValuePair.Value);
                 }
@@ -94,14 +91,14 @@ namespace Salday.EventBus
                 {
                     var handlCollType = typeof(HandlerCollection<>).MakeGenericType(keyValuePair.Key);
                     var handlCollection = Activator.CreateInstance(handlCollType, this) as IHandlerCollection;
-                    typeToHandler.Add(keyValuePair.Key, handlCollection);
-                    handlCollection.AddHandlers(keyValuePair.Value);
+                    TypeToHandler.Add(keyValuePair.Key, handlCollection);
+                    handlCollection?.AddHandlers(keyValuePair.Value);
                 }
 
             }
 
             var sub = new Subscription(eventProxy, this, dict);
-            subscriptions.Add(eventProxy, sub);
+            Subscriptions.Add(eventProxy, sub);
             return sub;
         }
 
@@ -109,21 +106,21 @@ namespace Salday.EventBus
         {
             if (subscription == null) return;
 
-            if (!subscriptions.ContainsKey(subscription.EventProxy)) return;
+            if (!Subscriptions.ContainsKey(subscription.EventProxy)) return;
 
-            subscriptions.Remove(subscription.EventProxy);
+            Subscriptions.Remove(subscription.EventProxy);
 
             var types = subscription.Handlers.Keys;
 
             foreach (var type in types)
             {
-                typeToHandler[type].RemoveSubscription(subscription);
+                TypeToHandler[type].RemoveSubscription(subscription);
             }
         }
 
         public void RemoveType(Type type)
         {
-            typeToHandler.Remove(type);
+            TypeToHandler.Remove(type);
         }
     }
 }

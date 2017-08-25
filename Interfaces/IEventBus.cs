@@ -7,7 +7,8 @@ namespace Salday.EventBus
         /// <summary>
         /// Registerers an object to event bus
         /// </summary>
-        /// <param name="eventProxy">Object, which contains handlers marked with <cref = Salday.EventBus.HandlerAttribute></param>
+        /// <param name="eventProxy">Object, which contains handlers marked with Salday.EventBus.HandlerAttribute />
+        /// </param>
         /// <returns></returns>
         ISubscription RegisterSubscription(object eventProxy);
 

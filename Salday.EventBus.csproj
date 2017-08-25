@@ -52,7 +52,7 @@
     <Compile Include="Interfaces\IProxy.cs" />
     <Compile Include="Reflection\HandlerFactory.cs" />
     <Compile Include="Reflection\HandlerFinder.cs" />
-    <Compile Include="HandlerMethodData.cs" />
+    <Compile Include="Reflection\HandlerMethodData.cs" />
     <Compile Include="HandlerT.cs" />
     <Compile Include="Interfaces\IEventBus.cs" />
     <Compile Include="Interfaces\IHandlerCollection.cs" />

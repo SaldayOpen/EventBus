@@ -15,13 +15,11 @@ namespace Salday.EventBus.Reflection
 
         internal List<HandlerMethodData> GetHandlersData(MethodInfo[] methodInfo)
         {
-            HandlerMethodData data;
-
             var rt = new List<HandlerMethodData>();
 
             foreach (var method in methodInfo)
             {
-                if (TryCreateHandlerData(method, out data)) rt.Add(data);
+                if (TryCreateHandlerData(method, out HandlerMethodData data)) rt.Add(data);
             }
 
             return rt;
@@ -51,7 +49,7 @@ namespace Salday.EventBus.Reflection
 
             var methodParameter = methodParams.FirstOrDefault();
 
-            var paramType = methodParameter.ParameterType;
+            var paramType = methodParameter?.ParameterType;
 
             var handlerData = new HandlerMethodData()
             {

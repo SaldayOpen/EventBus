@@ -1,5 +1,4 @@
 ﻿using Salday.EventBus.Interfaces;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -9,7 +8,7 @@ namespace Salday.EventBus
     {
         public IEventBus EvBus { get; }
 
-        IList<IHandler<TEvent>> handlers = new List<IHandler<TEvent>>();
+        IList<IHandler<TEvent>> _handlers = new List<IHandler<TEvent>>();
 
 
         public HandlerCollection(IEventBus evBus)
@@ -19,14 +18,14 @@ namespace Salday.EventBus
 
         public HandlerCollection(IEventBus evBus, IList<IHandler<TEvent>> handlers) : this(evBus)
         {
-            this.handlers = handlers;
+            this._handlers = handlers;
         }
 
         public void Handle(TEvent eventObject)
         {
-            for (int i = 0; i < handlers.Count; i++)
+            foreach (var t in _handlers)
             {
-                handlers[i]?.Handle(eventObject);
+                t?.Handle(eventObject);
             }
         }
 
@@ -35,21 +34,21 @@ namespace Salday.EventBus
             var handlersToRemove = supscription.Handlers[typeof(TEvent)];
 
             //Copy handlers over, to prevent handler collection change upon removal
-            var modifiedHandlerCollection = new List<IHandler<TEvent>>(handlers);
+            var modifiedHandlerCollection = new List<IHandler<TEvent>>(_handlers);
 
-            for (int i = 0; i < modifiedHandlerCollection.Count; i++)
+            for (var i = 0; i < modifiedHandlerCollection.Count; i++)
             {
-                for (int j = 0; j < handlersToRemove.Count; j++)
+                foreach (var t in handlersToRemove)
                 {
-                    if (handlersToRemove[j] as IHandler<TEvent> == handlers[i])
+                    if (t as IHandler<TEvent> == _handlers[i])
                     {
                         modifiedHandlerCollection.RemoveAt(i);
                     }
                 }
             }
-            if (handlers.Count == 0) EvBus.RemoveType(typeof(TEvent));
+            if (_handlers.Count == 0) EvBus.RemoveType(typeof(TEvent));
             else
-                handlers = modifiedHandlerCollection;
+                _handlers = modifiedHandlerCollection;
         }
 
         public void AddHandlers(IList<IHandler> list)
@@ -58,10 +57,10 @@ namespace Salday.EventBus
 
             foreach (var handler in casted)
             {
-                handlers.Add(handler);
+                _handlers.Add(handler);
             }
 
-            handlers = handlers.OrderByDescending(h => h.Priority).ToList();
+            _handlers = _handlers.OrderByDescending(h => h.Priority).ToList();
         }
     }
 }

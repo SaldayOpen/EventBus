@@ -1,5 +1,4 @@
-﻿using Salday.EventBus.Interfaces;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace Salday.EventBus.Interfaces
 {

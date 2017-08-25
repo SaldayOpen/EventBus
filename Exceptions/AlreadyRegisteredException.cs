@@ -25,7 +25,7 @@ namespace Salday.EventBus.Exceptions
 
         protected static string GetDefaultMessage(object eventProxy, IEventBus eventBus)
         {
-            return string.Format("Event proxy: {0} was already registered on this event bus", eventProxy);
+            return $"Event proxy: {eventProxy} was already registered on this event bus";
         }
 
         protected AlreadyRegisteredException(
